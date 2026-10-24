@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ToDoリスト
 
-## Getting Started
+Next.js（App Router）・TypeScript・Tailwind CSS で作ったシンプルな ToDo リストです。
+データはブラウザの localStorage に保存されるため、外部データベースは不要です。
 
-First, run the development server:
+## 機能
+
+- タスクの追加（Enter キー対応、100文字まで）
+- 完了・未完了の切り替え（タスク名をタップしても切り替え可能）
+- タスクの削除と取り消し（画面下の「元に戻す」ボタン、または Ctrl+Z / ⌘+Z）
+- 全タスク・完了・残りの件数と完了率の表示
+- ブラウザを閉じてもデータが残る（localStorage に保存、別タブとも同期）
+- 入力エラー・空の状態・保存失敗の表示
+- スマートフォン対応、キーボード操作とスクリーンリーダーへの配慮、ダークモード対応
+
+## 必要な環境
+
+- Node.js 20.9 以上
+
+## ローカルでの起動
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで http://localhost:3000 を開きます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## スクリプト
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| コマンド | 内容 |
+| --- | --- |
+| `npm run dev` | 開発サーバーを起動 |
+| `npm run lint` | ESLint によるチェック |
+| `npm run typecheck` | TypeScript の型チェック |
+| `npm run build` | 本番用ビルド |
+| `npm run start` | ビルド結果を起動 |
 
-## Learn More
+## ディレクトリ構成
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/            ページとレイアウト
+  components/     ToDo アプリの画面部品（入力フォーム・タスク行・取り消し通知）
+  lib/            localStorage への保存・読み込みと入力チェック
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Vercel への公開
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. このリポジトリを GitHub に push します。
+2. Vercel で「Add New → Project」から GitHub リポジトリを選びます。
+3. Framework Preset は Next.js が自動で選ばれます。環境変数の設定は不要です。
+4. 「Deploy」を押すと公開されます。
 
-## Deploy on Vercel
+## データの保存について
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+タスクは利用しているブラウザの localStorage（キー: `todo-app:todos:v1`）に保存されます。
+別のブラウザや端末とは共有されません。ブラウザのサイトデータを消去すると、タスクも消えます。
