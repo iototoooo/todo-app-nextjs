@@ -1,8 +1,23 @@
+import { isDateKey } from "./todo-date";
+
+export type Priority = "high" | "medium" | "low";
+
+export const PRIORITIES: readonly Priority[] = ["high", "medium", "low"];
+export const PRIORITY_LABELS: Record<Priority, string> = {
+  high: "高",
+  medium: "中",
+  low: "低",
+};
+export const DEFAULT_PRIORITY: Priority = "medium";
+
 export type Todo = {
   id: string;
   title: string;
   completed: boolean;
   createdAt: number;
+  /** 期限（利用者のローカル日付 YYYY-MM-DD）。未設定は null */
+  dueDate: string | null;
+  priority: Priority;
 };
 
 export type TodoState = {
@@ -17,7 +32,13 @@ export const MAX_TITLE_LENGTH = 100;
 let state: TodoState | null = null;
 const listeners = new Set<() => void>();
 
-function isTodo(value: unknown): value is Todo {
+type StoredTodo = Pick<Todo, "id" | "title" | "completed" | "createdAt"> & {
+  dueDate?: unknown;
+  priority?: unknown;
+};
+
+// 期限・優先度を追加する前の保存データ（4項目のみ）も有効なタスクとして扱う
+function isStoredTodo(value: unknown): value is StoredTodo {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
@@ -28,12 +49,28 @@ function isTodo(value: unknown): value is Todo {
   );
 }
 
+function isPriority(value: unknown): value is Priority {
+  return PRIORITIES.includes(value as Priority);
+}
+
+/** 旧形式のデータには期限なし・優先度「中」を補う */
+function normalizeTodo(stored: StoredTodo): Todo {
+  return {
+    id: stored.id,
+    title: stored.title,
+    completed: stored.completed,
+    createdAt: stored.createdAt,
+    dueDate: isDateKey(stored.dueDate) ? stored.dueDate : null,
+    priority: isPriority(stored.priority) ? stored.priority : DEFAULT_PRIORITY,
+  };
+}
+
 function parse(raw: string | null): TodoState {
   if (raw === null) return { todos: [], error: null };
   try {
     const data: unknown = JSON.parse(raw);
     if (!Array.isArray(data)) return { todos: [], error: "load" };
-    const todos = data.filter(isTodo);
+    const todos = data.filter(isStoredTodo).map(normalizeTodo);
     return { todos, error: todos.length === data.length ? null : "load" };
   } catch {
     return { todos: [], error: "load" };
@@ -106,8 +143,11 @@ function createId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function createTodo(title: string): Todo {
-  return { id: createId(), title, completed: false, createdAt: Date.now() };
+export function createTodo(
+  title: string,
+  { dueDate = null, priority = DEFAULT_PRIORITY }: Partial<Pick<Todo, "dueDate" | "priority">> = {},
+): Todo {
+  return { id: createId(), title, completed: false, createdAt: Date.now(), dueDate, priority };
 }
 
 export function countChars(text: string) {

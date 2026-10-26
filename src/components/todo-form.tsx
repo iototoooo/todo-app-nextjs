@@ -1,18 +1,24 @@
 import { useState, type FormEvent, type RefObject } from "react";
 import {
+  DEFAULT_PRIORITY,
   MAX_TITLE_LENGTH,
   countChars,
   validateTitle,
+  type Priority,
 } from "@/lib/todo-storage";
+import { DueDateField } from "./due-date-field";
+import { PriorityPicker } from "./priority-picker";
 
 type Props = {
-  onAdd: (title: string) => void;
+  onAdd: (title: string, options: { dueDate: string | null; priority: Priority }) => void;
   inputRef: RefObject<HTMLInputElement | null>;
 };
 
 export function TodoForm({ onAdd, inputRef }: Props) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [dueDate, setDueDate] = useState<string | null>(null);
+  const [priority, setPriority] = useState<Priority>(DEFAULT_PRIORITY);
   const length = countChars(value.trim());
   const tooLong = length > MAX_TITLE_LENGTH;
 
@@ -24,9 +30,11 @@ export function TodoForm({ onAdd, inputRef }: Props) {
       inputRef.current?.focus();
       return;
     }
-    onAdd(value.trim());
+    onAdd(value.trim(), { dueDate, priority });
     setValue("");
     setError(null);
+    setDueDate(null);
+    setPriority(DEFAULT_PRIORITY);
     inputRef.current?.focus();
   }
 
@@ -87,6 +95,10 @@ export function TodoForm({ onAdd, inputRef }: Props) {
       >
         {length} / {MAX_TITLE_LENGTH} 文字・Enter キーでも追加できます
       </p>
+      <div className="grid gap-4 pt-2 sm:grid-cols-2">
+        <DueDateField value={dueDate} onChange={setDueDate} />
+        <PriorityPicker value={priority} onChange={setPriority} />
+      </div>
     </form>
   );
 }
